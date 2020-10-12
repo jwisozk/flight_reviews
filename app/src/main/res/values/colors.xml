@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">@android:color/black</color>
+    <color name="colorAccent">#077CFF</color>
+    <color name="colorStarsSelect">#FFDB4d</color>
+    <color name="colorStarsDefault">#BFC1C7</color>
+    <color name="colorHint">#BFC1C7</color>
+    <color name="colorCheckBox">#BFC1C7</color>
+    <color name="colorButtonSubmit">#323C46</color>
+</resources>

@@ -1,0 +1,30 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="labelRatingBarStyle">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">@dimen/label_rating_bar_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:padding">@dimen/label_rating_bar_padding</item>
+    </style>
+
+    <style name="ratingBarTheme" parent="Theme.AppCompat">
+        <item name="android:numStars">5</item>
+        <item name="android:stepSize">1</item>
+        <item name="colorControlNormal">@color/colorStarsDefault</item>
+        <item name="colorControlActivated">@color/colorStarsSelect</item>
+    </style>
+
+    <style name="buttonStyle">
+        <item name="android:backgroundTint">@color/colorButtonSubmit</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+</resources>

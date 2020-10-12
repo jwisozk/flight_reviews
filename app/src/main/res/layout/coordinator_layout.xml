@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.jwisozk.flightreviews.CollapsibleToolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/motionLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="@dimen/app_bar_min_height"
+    app:layoutDescription="@xml/scene_header"
+    app:layout_scrollFlags="scroll|enterAlways|snap|exitUntilCollapsed">
+
+    <ImageView
+        android:id="@+id/appbarBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/star" />
+
+    <ImageView
+        android:id="@+id/appbarLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logo" />
+
+    <TextView
+        android:id="@+id/appbarLabel"
+        style="@style/labelRatingBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/label_rating_bar_overall"
+        android:textColor="#FFF"
+        android:transformPivotX="0dp"
+        android:transformPivotY="0dp" />
+
+    <TextView
+        android:id="@+id/appbarFlight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/flight"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="@dimen/appbar_flight_text_size" />
+
+    <RatingBar
+        android:id="@+id/appbarRatingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:theme="@style/ratingBarTheme" />
+
+</com.jwisozk.flightreviews.CollapsibleToolbar>

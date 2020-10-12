@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">FlightReviews</string>
+    <string name="label_rating_bar_overall">How do you rate the overall flight experience?</string>
+    <string name="flight">LH 3495 + 26 Mar 2019 SFO -> CDG</string>
+    <string name="label_rating_bar_people">How crowded was the flight?</string>
+    <string name="label_rating_bar_aircraft">How do you rate the aircraft?</string>
+    <string name="label_rating_bar_seat">How do you rate the seats?</string>
+    <string name="label_rating_bar_crew">How do you rate the crew?</string>
+    <string name="label_rating_bar_food">How do you rate the food?</string>
+    <string name="checkbox_rating_bar_food">There were no food</string>
+    <string name="label_any_feedback">Leave any feedback</string>
+    <string name="button_submit">Submit</string>
+    <string name="button_show_param">Show param</string>
+    <string name="hint_any_feedback">Share your experience. How was the\n seat? How was the food? Any tips?</string>
+</resources>
