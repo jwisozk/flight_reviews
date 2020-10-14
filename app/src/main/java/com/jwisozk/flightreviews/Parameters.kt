@@ -3,13 +3,13 @@ package com.jwisozk.flightreviews
 import android.content.Context
 
 data class Parameters(
-    var flight: String = "1",
-    var people: String = "1",
-    var aircraft: String = "1",
-    var seat: String = "1",
-    var crew: String = "1",
-    var food: String? = "1",
-    var text: String? = null,
+    val flight: String = "1",
+    val people: String = "1",
+    val aircraft: String = "1",
+    val seat: String = "1",
+    val crew: String = "1",
+    val food: String? = "1",
+    val text: String? = null,
 ) {
     companion object {
         fun getLabelArray(context: Context): Array<String> {

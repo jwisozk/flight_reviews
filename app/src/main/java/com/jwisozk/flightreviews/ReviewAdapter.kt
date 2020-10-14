@@ -10,72 +10,82 @@ import android.widget.TextView
 import android.widget.Button
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
+import com.jwisozk.flightreviews.util.ParamEnum
 
 class ReviewAdapter(
-    val viewModel: ParamViewModel,
-    val labelArray: Array<String>,
-    val param: Parameters
-) : RecyclerView.Adapter<ReviewAdapter.ItemHolder>() {
-    val penultimateIndex = this.labelArray.lastIndex - 1
-    val lastIndex = this.labelArray.lastIndex
+    val viewModel: ParamViewModel
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    lateinit var labelArray: Array<String>
+    var penultimateIndex = 0
+    var lastIndex = 0
     lateinit var editText: EditText
+    private val param = viewModel.getParameters()?.value
 
-    inner class ItemHolder(@NonNull itemView: ViewGroup) : RecyclerView.ViewHolder(itemView) {
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        labelArray = Parameters.getLabelArray(recyclerView.context)
+        penultimateIndex = labelArray.lastIndex - 1
+        lastIndex = labelArray.lastIndex
+    }
 
-        fun bind(@NonNull itemView: View, position: Int, layoutId: Int) {
-            when (layoutId) {
-                R.layout.item -> {
-                    when (position) {
-                        penultimateIndex -> {
-                            val checkBox = itemView.findViewById<CheckBox>(R.id.foodCheckBox)
-                            checkBox.visibility = View.VISIBLE
-                            checkBox.setOnCheckedChangeListener { _, isChecked ->
-                                if (isChecked) param.food = null
-                            }
-                        }
-                        lastIndex -> {
-                            val ratingBar = itemView.findViewById<RatingBar>(R.id.ratingBar)
-                            ratingBar.visibility = View.GONE
-                            editText = itemView.findViewById(R.id.feedbackEditText)
-                            editText.visibility = View.VISIBLE
-                        }
-                    }
-                    val ratingBar = itemView.findViewById<RatingBar>(R.id.ratingBar)
-                    ratingBar.onRatingBarChangeListener =
-                        RatingBar.OnRatingBarChangeListener { _, rating, _ ->
-                            run {
-                                when (position) {
-                                    0 -> param.people = (rating.toInt() + RATE_OFFSET).toString()
-                                    1 -> param.aircraft = (rating.toInt() + RATE_OFFSET).toString()
-                                    2 -> param.seat = (rating.toInt() + RATE_OFFSET).toString()
-                                    3 -> param.crew = (rating.toInt() + RATE_OFFSET).toString()
-                                    4 -> {
-                                        if (param.food != null)
-                                            param.food = (rating.toInt() + RATE_OFFSET).toString()
-                                    }
-                                }
-                            }
-                        }
-                    val textView = itemView.findViewById<TextView>(R.id.labelRatingBar)
-                    textView.text = labelArray[position]
-                }
-                R.layout.button -> {
-                    val button = itemView.findViewById<Button>(R.id.submitButton)
-                    button.setOnClickListener {
-                        if (editText.text.isNotEmpty())
-                            param.text = editText.text.toString()
-                        val activity = editText.context as MainActivity
-                        viewModel.refreshData(activity, param)
-                    }
+    inner class ButtonHolder(@NonNull itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind(@NonNull itemView: View) {
+            val button = itemView.findViewById<Button>(R.id.submitButton)
+            button.setOnClickListener {
+                if (editText.text.isNotEmpty())
+                    viewModel.setParameters(textParam = editText.text.toString())
+                if (param != null) {
+                    viewModel.refreshData()
                 }
             }
+        }
+    }
+
+    inner class RatingBarHolder(@NonNull itemView: ViewGroup) : RecyclerView.ViewHolder(itemView) {
+        fun bind(@NonNull itemView: View, position: Int) {
+            if (position == penultimateIndex) {
+                val checkBox = itemView.findViewById<CheckBox>(R.id.foodCheckBox)
+                checkBox.visibility = View.VISIBLE
+                checkBox.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) viewModel.setParameters(foodParam = null)
+                }
+            }
+            val ratingBar = itemView.findViewById<RatingBar>(R.id.ratingBar)
+            ratingBar.onRatingBarChangeListener =
+                RatingBar.OnRatingBarChangeListener { _, rating, _ ->
+                    run {
+                        when (position) {
+                            0 -> viewModel.onOverallRatingChanged(rating, ParamEnum.PEOPLE)
+                            1 -> viewModel.onOverallRatingChanged(rating, ParamEnum.AIRCRAFT)
+                            2 -> viewModel.onOverallRatingChanged(rating, ParamEnum.SEAT)
+                            3 -> viewModel.onOverallRatingChanged(rating, ParamEnum.CREW)
+                            4 -> {
+                                param?.food?.let {
+                                    viewModel.onOverallRatingChanged(rating, ParamEnum.FOOD)
+                                }
+
+                            }
+                        }
+                    }
+                }
+            val textView = itemView.findViewById<TextView>(R.id.labelRatingBar)
+            textView.text = labelArray[position]
+        }
+    }
+
+    inner class EditTextHolder(@NonNull itemView: ViewGroup) : RecyclerView.ViewHolder(itemView) {
+        fun bind(@NonNull itemView: View, position: Int) {
+            editText = itemView.findViewById(R.id.feedbackEditText)
+            val textView = itemView.findViewById<TextView>(R.id.labelEditText)
+            textView.text = labelArray[position]
         }
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (position) {
             labelArray.size -> R.layout.button
-            else -> R.layout.item
+            lastIndex -> R.layout.edit_text
+            else -> R.layout.rating_bar
         }
     }
 
@@ -83,19 +93,39 @@ class ReviewAdapter(
     override fun onCreateViewHolder(
         @NonNull parent: ViewGroup,
         viewType: Int
-    ): ItemHolder {
-        val itemView = when (viewType) {
-            R.layout.item -> LayoutInflater.from(parent.context)
-                .inflate(R.layout.item, parent, false)
-            else -> LayoutInflater.from(parent.context)
-                .inflate(R.layout.button, parent, false)
+    ): RecyclerView.ViewHolder {
+        return when (viewType) {
+            R.layout.rating_bar -> {
+                RatingBarHolder(LayoutInflater.from(parent.context)
+                    .inflate(R.layout.rating_bar, parent, false) as ViewGroup)
+            }
+            R.layout.edit_text -> {
+                EditTextHolder(LayoutInflater.from(parent.context)
+                .inflate(R.layout.edit_text, parent, false) as ViewGroup)
+            }
+            else -> {
+                ButtonHolder(LayoutInflater.from(parent.context)
+                    .inflate(R.layout.button, parent, false))
+            }
         }
-        return ItemHolder(itemView as ViewGroup)
-    }
-
-    override fun onBindViewHolder(holder: ItemHolder, position: Int) {
-        holder.bind(holder.itemView, position, getItemViewType(position))
     }
 
     override fun getItemCount() = labelArray.size + 1
+
+    override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
+        when (getItemViewType(position)) {
+            R.layout.button -> {
+                val buttonHolder = viewHolder as ButtonHolder
+                buttonHolder.bind(viewHolder.itemView)
+            }
+            R.layout.edit_text -> {
+                val editTextHolder = viewHolder as EditTextHolder
+                editTextHolder.bind(viewHolder.itemView, position)
+            }
+            R.layout.rating_bar -> {
+                val itemHolder = viewHolder as RatingBarHolder
+                itemHolder.bind(viewHolder.itemView, position)
+            }
+        }
+    }
 }
