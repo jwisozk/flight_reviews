@@ -26,7 +26,8 @@
         android:layout_height="wrap_content"
         style="@android:style/Widget.CompoundButton.RadioButton"
         android:text="@string/checkbox_rating_bar_food"
-        android:textColor="@color/colorCheckBox"
+        android:buttonTint="@color/colorCheckBox"
+        android:textColor="@color/colorCheckBoxLabel"
         android:visibility="gone" />
 
     <EditText

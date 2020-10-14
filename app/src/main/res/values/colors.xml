@@ -6,6 +6,7 @@
     <color name="colorStarsSelect">#FFDB4d</color>
     <color name="colorStarsDefault">#BFC1C7</color>
     <color name="colorHint">#BFC1C7</color>
-    <color name="colorCheckBox">#BFC1C7</color>
+    <color name="colorCheckBox">#077CFF</color>
+    <color name="colorCheckBoxLabel">#BFC1C7</color>
     <color name="colorButtonSubmit">#323C46</color>
 </resources>
