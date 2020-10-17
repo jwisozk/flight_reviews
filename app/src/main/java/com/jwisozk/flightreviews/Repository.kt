@@ -44,5 +44,3 @@ class Repository(private val network: MainNetwork) {
  * @property cause the original cause of this exception
  */
 class DataRefreshError(message: String, cause: Throwable) : Throwable(message, cause)
-
-

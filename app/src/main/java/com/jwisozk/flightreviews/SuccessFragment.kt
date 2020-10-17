@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.airbnb.lottie.LottieAnimationView
-
 
 class SuccessFragment : Fragment() {
 
@@ -28,20 +27,19 @@ class SuccessFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val activity = activity ?: return
-        val resultTextView = activity.findViewById<TextView>(R.id.resultReview)
+        val resultTextView = view.findViewById<TextView>(R.id.resultReview)
         val repository = Repository(getNetworkService())
-        val viewModel = ViewModelProviders
-            .of(activity, ParamViewModel.FACTORY(repository))
-            .get(ParamViewModel::class.java)
-        viewModel.getParameters()?.observe(viewLifecycleOwner,
-            {
-                if (it == null)
-                    return@observe
-                resultTextView.text = it.toString()
-            })
+        val viewModel = ViewModelProvider(activity).get(ParamViewModel::class.java)
+        viewModel.reset(ParamViewModel.Companion.Input(repository))
+        viewModel.parametersLiveData.observe(viewLifecycleOwner, {
+            if (it == null) {
+                return@observe
+            }
+            resultTextView.text = it.toString()
+        })
+        val animation = activity.findViewById<LottieAnimationView>(R.id.animationView)
         val button = activity.findViewById<Button>(R.id.showParamButton)
         button.setOnClickListener {
-            val animation = activity.findViewById<LottieAnimationView>(R.id.animationView)
             animation.visibility = View.GONE
             resultTextView.visibility = View.VISIBLE
         }

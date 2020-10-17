@@ -1,5 +1,5 @@
 package com.jwisozk.flightreviews
 
 object Constants {
-    var RATE_OFFSET = 1
+    const val RATE_OFFSET = 1
 }

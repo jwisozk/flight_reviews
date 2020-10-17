@@ -1,113 +1,104 @@
 package com.jwisozk.flightreviews
 
+import android.widget.Button
+import android.widget.EditText
+import androidx.annotation.NonNull
+import androidx.annotation.Nullable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jwisozk.flightreviews.util.ParamEnum
 import com.jwisozk.flightreviews.util.SingleEventLiveData
-import com.jwisozk.flightreviews.util.singleArgViewModelFactory
 import kotlinx.coroutines.launch
 
-
-class ParamViewModel(private val repository: Repository) : ViewModel() {
+class ParamViewModel : ViewModel() {
 
     companion object {
-        /**
-         * Factory for creating [ParamViewModel]
-         *
-         * @param arg the repository to pass to [ParamViewModel]
-         */
-        val FACTORY = singleArgViewModelFactory(::ParamViewModel)
+        data class Input(val repository: Repository)
     }
 
-    /**
-     * Show a loading spinner if true
-     */
-    val isLoading: LiveData<Boolean>
-        get() = isLoadingLiveData
+    @Nullable
+    private var input: Input? = null
 
-    /**
-     * Request a snackbar to display a string.
-     */
-    val snackbar: LiveData<String?>
-        get() = snackBarLiveData
+    private val _parametersLiveData = MutableLiveData<Parameters>()
+    val parametersLiveData: LiveData<Parameters> = _parametersLiveData
 
-    /**
-     * Transition to SuccessFragment if true
-     */
-    val isRefreshData: LiveData<Boolean>
-        get() = isRefreshLiveData
+    private val _snackBarLiveData = SingleEventLiveData<String>()
+    val snackBarLiveData: LiveData<String> = _snackBarLiveData
 
-    private val parametersLiveData = MutableLiveData<Parameters>()
-    private val snackBarLiveData = SingleEventLiveData<String?>()
-    private val isLoadingLiveData = MutableLiveData(false)
-    private val isRefreshLiveData = MutableLiveData(false)
+    private val _isLoadingLiveData = SingleEventLiveData<Boolean>()
+    val isLoadingLiveData: LiveData<Boolean> = _isLoadingLiveData
 
-    fun getParameters(): LiveData<Parameters>? {
-        return parametersLiveData
+    private val _isRefreshLiveData = SingleEventLiveData<Boolean>()
+    val isRefreshLiveData: LiveData<Boolean> = _isRefreshLiveData
+
+    private val _editTextLiveData = SingleEventLiveData<EditText>()
+    val editTextLiveData: LiveData<EditText> = _editTextLiveData
+
+    private val _submitButtonLiveData = SingleEventLiveData<Button>()
+    val submitButtonLiveData: LiveData<Button> = _submitButtonLiveData
+
+    fun setEditTextLiveData(editText: EditText) {
+        _editTextLiveData.value = editText
     }
 
-    fun setParameters(parameters: Parameters) {
-            parametersLiveData.value = parameters
+    fun setSubmitButtonLiveData(button: Button) {
+        _submitButtonLiveData.value = button
     }
 
-    fun setParameters(flightParam: String? = null,
-                      peopleParam: String? = null,
-                      aircraftParam: String? = null,
-                      seatParam: String? = null,
-                      crewParam: String? = null,
-                      foodParam: String? = null,
-                      textParam: String? = null,
-    ) {
-        parametersLiveData.value?.let {
-            val param = it.copy(
-                flight = flightParam ?: it.flight,
-                people = peopleParam ?: it.people,
-                aircraft = aircraftParam ?: it.aircraft,
-                seat = seatParam ?: it.seat,
-                crew = crewParam ?: it.crew,
-                food = foodParam ?: it.food,
-                text = textParam ?: it.text
-            )
-            setParameters(param)
+    fun reset(@NonNull input: Input) {
+        if (input == this.input) {
+            return
+        }
+        this.input = input
+    }
+
+    fun onOverallRatingChanged(rating: Float?, labelType: AbsParamCell.LabelType) {
+        if (rating == null) {
+            if (labelType == AbsParamCell.LabelType.FOOD)
+                _parametersLiveData.value =
+                    _parametersLiveData.value?.copy(food = null) ?: Parameters(food = null)
+            return
+        }
+        val ratingString = (rating.toInt() + Constants.RATE_OFFSET).toString()
+        _parametersLiveData.value = when (labelType) {
+            AbsParamCell.LabelType.FLIGHT ->
+                _parametersLiveData.value?.copy(flight = ratingString)
+                    ?: Parameters(flight = ratingString)
+            AbsParamCell.LabelType.PEOPLE ->
+                _parametersLiveData.value?.copy(people = ratingString)
+                    ?: Parameters(people = ratingString)
+            AbsParamCell.LabelType.AIRCRAFT ->
+                _parametersLiveData.value?.copy(aircraft = ratingString)
+                    ?: Parameters(aircraft = ratingString)
+            AbsParamCell.LabelType.SEAT ->
+                _parametersLiveData.value?.copy(seat = ratingString)
+                    ?: Parameters(seat = ratingString)
+            AbsParamCell.LabelType.CREW ->
+                _parametersLiveData.value?.copy(crew = ratingString)
+                    ?: Parameters(crew = ratingString)
+            AbsParamCell.LabelType.FOOD ->
+                _parametersLiveData.value?.copy(food = ratingString)
+                    ?: Parameters(food = ratingString)
+            else -> _parametersLiveData.value
         }
     }
 
-    fun onOverallRatingChanged(rating: Float, paramEnum: ParamEnum) {
-        when (paramEnum) {
-            ParamEnum.FLIGHT -> {
-                setParameters(flightParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-            ParamEnum.PEOPLE -> {
-                setParameters(peopleParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-            ParamEnum.AIRCRAFT -> {
-                setParameters(aircraftParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-            ParamEnum.SEAT -> {
-                setParameters(seatParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-            ParamEnum.CREW -> {
-                setParameters(crewParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-            ParamEnum.FOOD -> {
-                setParameters(foodParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-            ParamEnum.TEXT -> {
-                setParameters(textParam = (rating.toInt() + Constants.RATE_OFFSET).toString())
-            }
-        }
+    fun onOverallTextChanged(text: String) {
+        _parametersLiveData.value =
+            _parametersLiveData.value?.copy(text = text) ?: Parameters(text = text)
     }
 
     /**
      * Refresh the data, showing a loading spinner while it refreshes and errors via snackbar.
      */
     fun refreshData() = launchDataLoad {
-        repository.refreshData()
-        isRefreshLiveData.value = true
+        input?.repository?.refreshData()
+        if (_parametersLiveData.value == null)
+            _parametersLiveData.value = Parameters()
+        _isRefreshLiveData.value = true
     }
-    
+
     /**
      * Helper function to call a data load function with a loading spinner, errors will trigger a
      * snackbar.
@@ -119,15 +110,15 @@ class ParamViewModel(private val repository: Repository) : ViewModel() {
      *              lambda the loading spinner will display, after completion or error the loading
      *              spinner will stop
      */
-    private fun launchDataLoad(block: suspend () -> Unit): Unit {
+    private fun launchDataLoad(block: suspend () -> Unit) {
         viewModelScope.launch {
             try {
-                isLoadingLiveData.value = true
+                _isLoadingLiveData.value = true
                 block()
             } catch (error: DataRefreshError) {
-                snackBarLiveData.value = error.message
+                _snackBarLiveData.value = error.message
             } finally {
-                isLoadingLiveData.value = false
+                _isLoadingLiveData.value = false
             }
         }
     }
