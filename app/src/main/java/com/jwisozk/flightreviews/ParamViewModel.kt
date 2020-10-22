@@ -1,9 +1,5 @@
 package com.jwisozk.flightreviews
 
-import android.widget.Button
-import android.widget.EditText
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,11 +13,13 @@ class ParamViewModel : ViewModel() {
         data class Input(val repository: Repository)
     }
 
-    @Nullable
     private var input: Input? = null
 
     private val _parametersLiveData = MutableLiveData<Parameters>()
     val parametersLiveData: LiveData<Parameters> = _parametersLiveData
+
+    private val _listParamCellLiveData = MutableLiveData<List<ParamCell>>()
+    val listParamCellLiveData: LiveData<List<ParamCell>> = _listParamCellLiveData
 
     private val _snackBarLiveData = SingleEventLiveData<String>()
     val snackBarLiveData: LiveData<String> = _snackBarLiveData
@@ -32,25 +30,43 @@ class ParamViewModel : ViewModel() {
     private val _isRefreshLiveData = SingleEventLiveData<Boolean>()
     val isRefreshLiveData: LiveData<Boolean> = _isRefreshLiveData
 
-    private val _editTextLiveData = SingleEventLiveData<EditText>()
-    val editTextLiveData: LiveData<EditText> = _editTextLiveData
-
-    private val _submitButtonLiveData = SingleEventLiveData<Button>()
-    val submitButtonLiveData: LiveData<Button> = _submitButtonLiveData
-
-    fun setEditTextLiveData(editText: EditText) {
-        _editTextLiveData.value = editText
-    }
-
-    fun setSubmitButtonLiveData(button: Button) {
-        _submitButtonLiveData.value = button
-    }
-
-    fun reset(@NonNull input: Input) {
+    fun reset(input: Input) {
         if (input == this.input) {
             return
         }
         this.input = input
+        if (_listParamCellLiveData.value == null)
+            _listParamCellLiveData.value = buildListOfCells()
+    }
+
+    private fun buildListOfCells(): List<ParamCell> {
+        val cells = ArrayList<ParamCell>()
+        cells.add(ParamCell.RatingBar(AbsParamCell.LabelType.PEOPLE, 0f, false, false))
+        cells.add(ParamCell.RatingBar(AbsParamCell.LabelType.AIRCRAFT, 0f, false, false))
+        cells.add(ParamCell.RatingBar(AbsParamCell.LabelType.SEAT, 0f, false, false))
+        cells.add(ParamCell.RatingBar(AbsParamCell.LabelType.CREW, 0f, false, false))
+        cells.add(ParamCell.RatingBar(AbsParamCell.LabelType.FOOD, 0f, true, false))
+        cells.add(ParamCell.EditText(""))
+        cells.add(ParamCell.Button)
+        return cells
+    }
+
+    fun updateListOfCells(paramCell: ParamCell) {
+        val cells = if (_listParamCellLiveData.value == null) {
+            buildListOfCells() as ArrayList<ParamCell>
+        } else {
+            _listParamCellLiveData.value as ArrayList<ParamCell>
+        }
+        val index = when (paramCell) {
+            is ParamCell.RatingBar -> {
+                AbsParamCell.LabelType.values().indexOf(paramCell.labelType) - 1
+            }
+            is ParamCell.EditText -> AbsParamCell.LabelType.values().lastIndex
+            else -> return
+        }
+        cells[index] = paramCell
+
+        _listParamCellLiveData.value = cells
     }
 
     fun onOverallRatingChanged(rating: Float?, labelType: AbsParamCell.LabelType) {

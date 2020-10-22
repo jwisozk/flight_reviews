@@ -2,6 +2,7 @@ package com.jwisozk.flightreviews
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.RatingBar
 import androidx.constraintlayout.motion.widget.MotionLayout
@@ -37,54 +38,51 @@ class SubmitFragment : Fragment(R.layout.fragment_submit) {
             }
         val motionLayout = view.findViewById<MotionLayout>(R.id.motionLayout)
         val appBar = view.findViewById<AppBarLayout>(R.id.appBarLayout)
-        appBar.addOnOffsetChangedListener(object : MotionLayout(activity),
-            AppBarLayout.OnOffsetChangedListener {
-            override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
-                appBarLayout?.totalScrollRange?.toFloat()?.let {
-                    motionLayout.progress = -verticalOffset / it
+        appBar.addOnOffsetChangedListener(
+            AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+                motionLayout.progress = -verticalOffset / appBar.totalScrollRange.toFloat()
+            }
+        )
+        val cells = viewModel.listParamCellLiveData.value!!
+        var submitButton: Button? = null
+        val viewAdapter = ParamAdapter(cells, layoutInflater, object : ParamAdapter.Listener {
+            override fun onRatingBarChangeListener(cell: ParamCell.RatingBar) {
+                viewModel.onOverallRatingChanged(cell.rating, cell.labelType)
+            }
+
+            override fun onCheckedChangeListener(cell: ParamCell.RatingBar) {
+                if (cell.isCheckboxChecked) {
+                    viewModel.onOverallRatingChanged(null, cell.labelType)
+                } else {
+                    viewModel.onOverallRatingChanged(cell.rating, cell.labelType)
+                    viewModel.updateListOfCells(cell)
                 }
             }
 
-            override fun onAttachedToWindow() {
-                super.onAttachedToWindow()
-                (parent as? AppBarLayout)?.addOnOffsetChangedListener(this)
+            override fun onEditTextFocusChangeListener(
+                cell: ParamCell.EditText,
+                hasFocus: Boolean
+            ) {
+                if (!hasFocus)
+                    viewModel.onOverallTextChanged(cell.text)
+            }
+
+            override fun onButtonClickListener(cell: ParamCell.Button, button: Button) {
+                if (submitButton == null)
+                    submitButton = button
+                viewModel.refreshData()
             }
         })
-
-        val viewAdapter = ReviewListAdapter(
-            layoutInflater,
-            viewModel,
-            object : ReviewListAdapter.ReviewListActionListener {
-                override fun onSubmitButtonClick(viewModel: ParamViewModel) {
-                    val editText = viewModel.editTextLiveData.value
-                    if (editText != null && editText.text.isNotEmpty()) {
-                        viewModel.onOverallTextChanged(editText.text.toString())
-                    }
-                    viewModel.refreshData()
-                }
-
-                override fun onRatingBarChangeListener(
-                    viewModel: ParamViewModel,
-                    rating: Float,
-                    labelType: AbsParamCell.LabelType
-                ) {
-                    viewModel.onOverallRatingChanged(rating, labelType)
-                }
-
-                override fun onCheckedChangeListener(
-                    viewModel: ParamViewModel,
-                    isChecked: Boolean,
-                    labelType: AbsParamCell.LabelType
-                ) {
-                    if (isChecked) {
-                        viewModel.onOverallRatingChanged(null, labelType)
-                    }
-                }
-            })
         view.findViewById<RecyclerView>(R.id.recycler).apply {
             setHasFixedSize(true)
             layoutManager = viewManager
             adapter = viewAdapter
+        }
+
+        viewModel.listParamCellLiveData.observe(viewLifecycleOwner) { list ->
+            if (list == null)
+                return@observe
+            viewAdapter.submitList(list)
         }
 
         // show the isLoading when [ParamViewModel.isLoading] is true
@@ -92,15 +90,13 @@ class SubmitFragment : Fragment(R.layout.fragment_submit) {
             if (value == null) {
                 return@observe
             }
-            val button = viewModel.submitButtonLiveData.value
             if (value) {
                 spinner.visibility = View.VISIBLE
-                button?.visibility = View.GONE
+                submitButton?.visibility = View.GONE
             } else if (spinner.visibility == View.VISIBLE) {
                 spinner.visibility = View.GONE
-                button?.visibility = View.VISIBLE
+                submitButton?.visibility = View.VISIBLE
             }
-
         }
 
         // Show a snackbar whenever the [ParamViewModel.snackbar] is updated a non-null value
